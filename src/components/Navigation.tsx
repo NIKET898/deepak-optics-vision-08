@@ -9,11 +9,11 @@ export const Navigation = () => {
   const { user, signOut } = useAuth();
 
   const menuItems = [
-    { label: 'Home', href: '#home' },
-    { label: 'Products', href: '#products' },
-    { label: 'Services', href: '#services' },
-    { label: 'About', href: '#about' },
-    { label: 'Contact', href: '#contact' },
+    { label: 'Home', href: '/', isLink: true },
+    { label: 'Products', href: '/products', isLink: true },
+    { label: 'Services', href: '#services', isLink: false },
+    { label: 'About', href: '#about', isLink: false },
+    { label: 'Contact', href: '#contact', isLink: false },
   ];
 
   const handleSignOut = async () => {
@@ -37,15 +37,25 @@ export const Navigation = () => {
 
           {/* Desktop Menu */}
           <div className="hidden md:flex items-center space-x-8">
-            {menuItems.map((item, index) => (
-              <a
-                key={item.label}
-                href={item.href}
-                className={`text-sm font-medium text-foreground hover:text-primary transition-colors animate-fade-in-up animate-delay-${index + 1}00`}
-              >
-                {item.label}
-              </a>
-            ))}
+            {menuItems.map((item, index) => 
+              item.isLink ? (
+                <a
+                  key={item.label}
+                  href={item.href}
+                  className={`text-sm font-medium text-foreground hover:text-primary transition-colors animate-fade-in-up animate-delay-${index + 1}00`}
+                >
+                  {item.label}
+                </a>
+              ) : (
+                <a
+                  key={item.label}
+                  href={item.href}
+                  className={`text-sm font-medium text-foreground hover:text-primary transition-colors animate-fade-in-up animate-delay-${index + 1}00`}
+                >
+                  {item.label}
+                </a>
+              )
+            )}
           </div>
 
           {/* Auth & Cart */}
