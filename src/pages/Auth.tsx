@@ -167,8 +167,14 @@ export const Auth = () => {
                         <FormLabel>Full Name</FormLabel>
                         <FormControl>
                           <div className="relative">
-                            <User className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                            <Input {...field} placeholder="Your full name" className="pl-10" />
+                            <User className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-muted-foreground z-10 pointer-events-none" />
+                            <Input 
+                              {...field} 
+                              type="text"
+                              placeholder="Your full name" 
+                              className="pl-10 relative z-0" 
+                              autoComplete="name"
+                            />
                           </div>
                         </FormControl>
                         <FormMessage />
@@ -183,8 +189,14 @@ export const Auth = () => {
                         <FormLabel>Email</FormLabel>
                         <FormControl>
                           <div className="relative">
-                            <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                            <Input {...field} type="email" placeholder="your@email.com" className="pl-10" />
+                            <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-muted-foreground z-10 pointer-events-none" />
+                            <Input 
+                              {...field} 
+                              type="email" 
+                              placeholder="your@email.com" 
+                              className="pl-10 relative z-0" 
+                              autoComplete="email"
+                            />
                           </div>
                         </FormControl>
                         <FormMessage />

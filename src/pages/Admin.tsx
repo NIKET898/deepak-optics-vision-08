@@ -11,6 +11,7 @@ import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { useNavigate } from 'react-router-dom';
+import { AddProductDialog } from '@/components/AddProductDialog';
 import { 
   BarChart3, 
   Package, 
@@ -36,6 +37,7 @@ export const Admin = () => {
   const [loading, setLoading] = useState(false);
   const [orders, setOrders] = useState([]);
   const [products, setProducts] = useState([]);
+  const [showAddProduct, setShowAddProduct] = useState(false);
   const [stats, setStats] = useState({
     totalOrders: 0,
     totalRevenue: 0,
@@ -137,6 +139,99 @@ export const Admin = () => {
       month: 'short',
       day: 'numeric'
     });
+  };
+
+  const handleViewProduct = (product: any) => {
+    toast({
+      title: "Product Details",
+      description: `Viewing ${product.name}`,
+    });
+  };
+
+  const handleEditProduct = (product: any) => {
+    toast({
+      title: "Edit Product",
+      description: `Editing ${product.name}`,
+    });
+  };
+
+  const handleDeleteProduct = async (productId: string) => {
+    try {
+      const { error } = await supabase
+        .from('products')
+        .delete()
+        .eq('id', productId);
+
+      if (error) throw error;
+
+      setProducts(products.filter((p: any) => p.id !== productId));
+      toast({
+        title: "Product Deleted",
+        description: "Product has been successfully deleted.",
+      });
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to delete product",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleUpdateOrderStatus = async (orderId: string, newStatus: string) => {
+    try {
+      const { error } = await supabase
+        .from('orders')
+        .update({ status: newStatus })
+        .eq('id', orderId);
+
+      if (error) throw error;
+
+      setOrders(orders.map((order: any) => 
+        order.id === orderId ? { ...order, status: newStatus } : order
+      ));
+      
+      toast({
+        title: "Order Updated",
+        description: `Order status changed to ${newStatus}`,
+      });
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to update order status",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleViewOrder = (order: any) => {
+    toast({
+      title: "Order Details",
+      description: `Viewing order #${order.id.slice(0, 8)}`,
+    });
+  };
+
+  const handleDeleteOrder = async (orderId: string) => {
+    try {
+      const { error } = await supabase
+        .from('orders')
+        .delete()
+        .eq('id', orderId);
+
+      if (error) throw error;
+
+      setOrders(orders.filter((o: any) => o.id !== orderId));
+      toast({
+        title: "Order Deleted",
+        description: "Order has been successfully deleted.",
+      });
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to delete order",
+        variant: "destructive",
+      });
+    }
   };
 
   if (!isAuthenticated) {
@@ -310,43 +405,167 @@ export const Admin = () => {
         </Card>
 
         {/* Products Management */}
+        <Card className="glass-card mb-8">
+          <CardHeader>
+            <div className="flex justify-between items-center">
+              <div>
+                <CardTitle className="flex items-center gap-2">
+                  <Package className="w-5 h-5" />
+                  Products Management
+                </CardTitle>
+                <CardDescription>Manage your product inventory</CardDescription>
+              </div>
+              <Button onClick={() => setShowAddProduct(true)} className="btn-hero">
+                Add New Product
+              </Button>
+            </div>
+          </CardHeader>
+          <CardContent>
+            <div className="overflow-x-auto">
+              <table className="w-full">
+                <thead>
+                  <tr className="border-b border-white/10">
+                    <th className="text-left p-3 font-medium">Name</th>
+                    <th className="text-left p-3 font-medium">Category</th>
+                    <th className="text-left p-3 font-medium">Price</th>
+                    <th className="text-left p-3 font-medium">Status</th>
+                    <th className="text-left p-3 font-medium">Actions</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {products.map((product: any) => (
+                    <tr key={product.id} className="border-b border-white/5 hover:bg-white/5 transition-colors">
+                      <td className="p-3">
+                        <div className="flex items-center gap-3">
+                          {product.image_url && (
+                            <img src={product.image_url} alt={product.name} className="w-10 h-10 rounded object-cover" />
+                          )}
+                          <div>
+                            <p className="font-medium">{product.name}</p>
+                            <p className="text-sm text-muted-foreground">{product.brand}</p>
+                          </div>
+                        </div>
+                      </td>
+                      <td className="p-3 text-muted-foreground">{product.category}</td>
+                      <td className="p-3 font-bold">{formatPrice(product.price)}</td>
+                      <td className="p-3">
+                        <Badge variant={product.is_active ? 'default' : 'secondary'}>
+                          {product.is_active ? 'Active' : 'Inactive'}
+                        </Badge>
+                      </td>
+                      <td className="p-3">
+                        <div className="flex gap-1">
+                          <Button variant="ghost" size="sm" onClick={() => handleViewProduct(product)}>
+                            <Eye className="w-3 h-3" />
+                          </Button>
+                          <Button variant="ghost" size="sm" onClick={() => handleEditProduct(product)}>
+                            <Edit className="w-3 h-3" />
+                          </Button>
+                          <Button variant="ghost" size="sm" onClick={() => handleDeleteProduct(product.id)}>
+                            <Trash2 className="w-3 h-3 text-red-500" />
+                          </Button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+              {products.length === 0 && (
+                <div className="text-center py-8 text-muted-foreground">
+                  No products found. Add your first product to get started.
+                </div>
+              )}
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Order Management */}
         <Card className="glass-card">
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
-              <Package className="w-5 h-5" />
-              Products Management
+              <ShoppingCart className="w-5 h-5" />
+              Order Management
             </CardTitle>
-            <CardDescription>Manage your product inventory</CardDescription>
+            <CardDescription>Manage customer orders and their status</CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {products.slice(0, 6).map((product: any) => (
-                <div key={product.id} className="p-4 bg-white/5 rounded-lg">
-                  <div className="flex justify-between items-start mb-2">
-                    <h4 className="font-medium">{product.name}</h4>
-                    <div className="flex gap-1">
-                      <Button variant="ghost" size="sm">
-                        <Eye className="w-3 h-3" />
-                      </Button>
-                      <Button variant="ghost" size="sm">
-                        <Edit className="w-3 h-3" />
-                      </Button>
-                      <Button variant="ghost" size="sm">
-                        <Trash2 className="w-3 h-3" />
-                      </Button>
-                    </div>
-                  </div>
-                  <p className="text-sm text-muted-foreground mb-2">{product.category}</p>
-                  <p className="font-bold">{formatPrice(product.price)}</p>
-                  <Badge variant={product.is_active ? 'default' : 'secondary'} className="mt-2">
-                    {product.is_active ? 'Active' : 'Inactive'}
-                  </Badge>
+            <div className="overflow-x-auto">
+              <table className="w-full">
+                <thead>
+                  <tr className="border-b border-white/10">
+                    <th className="text-left p-3 font-medium">Order ID</th>
+                    <th className="text-left p-3 font-medium">Customer</th>
+                    <th className="text-left p-3 font-medium">Items</th>
+                    <th className="text-left p-3 font-medium">Total</th>
+                    <th className="text-left p-3 font-medium">Status</th>
+                    <th className="text-left p-3 font-medium">Date</th>
+                    <th className="text-left p-3 font-medium">Actions</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {orders.map((order: any) => (
+                    <tr key={order.id} className="border-b border-white/5 hover:bg-white/5 transition-colors">
+                      <td className="p-3">
+                        <p className="font-medium">#{order.id.slice(0, 8)}</p>
+                      </td>
+                      <td className="p-3">
+                        <div>
+                          <p className="font-medium">{order.customer_name || 'Guest'}</p>
+                          <p className="text-sm text-muted-foreground">{order.phone}</p>
+                        </div>
+                      </td>
+                      <td className="p-3">
+                        <p className="text-sm text-muted-foreground">
+                          {order.items ? JSON.parse(order.items).length : 0} items
+                        </p>
+                      </td>
+                      <td className="p-3 font-bold">{formatPrice(order.total_amount)}</td>
+                      <td className="p-3">
+                        <select 
+                          value={order.status}
+                          onChange={(e) => handleUpdateOrderStatus(order.id, e.target.value)}
+                          className="bg-white/5 border border-white/10 rounded px-2 py-1 text-sm"
+                        >
+                          <option value="pending">Pending</option>
+                          <option value="processing">Processing</option>
+                          <option value="shipped">Shipped</option>
+                          <option value="delivered">Delivered</option>
+                          <option value="cancelled">Cancelled</option>
+                        </select>
+                      </td>
+                      <td className="p-3 text-sm text-muted-foreground">
+                        {formatDate(order.created_at)}
+                      </td>
+                      <td className="p-3">
+                        <div className="flex gap-1">
+                          <Button variant="ghost" size="sm" onClick={() => handleViewOrder(order)}>
+                            <Eye className="w-3 h-3" />
+                          </Button>
+                          <Button variant="ghost" size="sm" onClick={() => handleDeleteOrder(order.id)}>
+                            <Trash2 className="w-3 h-3 text-red-500" />
+                          </Button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+              {orders.length === 0 && (
+                <div className="text-center py-8 text-muted-foreground">
+                  No orders found
                 </div>
-              ))}
+              )}
             </div>
           </CardContent>
         </Card>
       </div>
+
+      {/* Add Product Dialog */}
+      <AddProductDialog 
+        open={showAddProduct}
+        onOpenChange={setShowAddProduct}
+        onProductAdded={fetchDashboardData}
+      />
     </div>
   );
 };
